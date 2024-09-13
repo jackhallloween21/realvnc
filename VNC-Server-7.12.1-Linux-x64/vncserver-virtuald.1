@@ -1,0 +1,184 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "vncserver-virtuald" "1" "December 2022" "RealVNC Ltd" "VNC"
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH NAME
+.sp
+\fBvncserver\-virtuald\fP \- VNC\(rg Server in Virtual Mode daemon
+.SH SYNOPSIS
+.sp
+\fBvncserver\-virtuald\fP [\fIOPTION...\fP] [\fICOMMAND\fP]
+.SH DESCRIPTION
+.sp
+\fBvncserver\-virtuald\fP is a daemon that starts VNC Server in Virtual
+Mode for each VNC Viewer that connects, to create virtual desktops on
+demand. The daemon can be started manually, but is designed to be
+started automatically at system boot time; see \fI\%Starting the daemon\fP\&.
+Note that a suitable offline license is required; see
+\fBvnclicense(1)\fP\&.
+.sp
+By default, the daemon listens for connections on port 5999; specify the
+\fBDaemonPort\fP parameter to choose a different port. Also by default,
+a VNC Viewer can connect by supplying the credentials of \fIany\fP user able
+to log on to the computer (the daemon mandates system authentication);
+specify the \fBPermissions\fP parameter to restrict access to particular
+users or groups.
+.sp
+For each successfully\-authenticating VNC Viewer, the daemon runs
+\fBvncserver\-virtual\fP; see \fBvncserver\-virtual(1)\fP\&.
+The daemon then transfers the connection to the newly\-created virtual
+desktop and consumes one computer \(aqdesktop\(aq from your subscription, as that user. The
+daemon itself does not consume a desktop.
+.sp
+By default, when a VNC Viewer disconnects, their virtual desktop is destroyed and
+your subscription is incremented by one desktop. If a VNC Viewer reconnects using
+the same credentials, a new virtual desktop is created; a session does not persist.
+To change this and persist sessions, apply the \fBConnectToExisting\fP parameter.
+.SH COMMANDS
+.sp
+Applying a command to \fBvncserver\-virtuald\fP performs an auxiliary
+operation instead of starting the daemon.
+.sp
+To see a list of valid commands, run \fBvncserver\-virtuald \-help\fP\&.
+.SH OPTIONS
+.sp
+Options are parameters, used to configure the daemon, and also the
+following:
+.INDENT 0.0
+.TP
+.B \fB\-fg\fP
+Runs in the foreground (not as a daemon), which may be useful for
+troubleshooting.
+.UNINDENT
+.sp
+To see a list of valid parameters, run \fBvncserver\-virtuald
+\-help\fP\&. To specify a parameter as a command line option, apply
+it to the command executing the binary in the appropriate init
+script; see \fI\%Starting the daemon\fP\&.
+.SH VNC CONFIGURATION FILES
+.sp
+Parameters can be specified as command line \fIOPTIONS\fP, but
+preferably in VNC configuration files. VNC configuration files are
+available for:
+.INDENT 0.0
+.IP \(bu 2
+All programs, or just the daemon
+.IP \(bu 2
+All users of the computer, or just the root user
+.IP \(bu 2
+Policy, in order to lock down the daemon
+.UNINDENT
+.sp
+When the daemon starts, parameters are applied in the following
+order:
+.INDENT 0.0
+.IP 1. 3
+System\-wide VNC configuration files
+.IP 2. 3
+Per\-user VNC configuration files
+.IP 3. 3
+Command line \fIOPTIONS\fP
+.IP 4. 3
+Policy VNC configuration files
+.UNINDENT
+.sp
+This means that a particular parameter specified at the command line
+overrides the same parameter specified in a per\-user or in a system\-wide
+VNC configuration file, but is itself overridden by the same parameter
+specified in a policy VNC configuration file. Policy cannot be changed
+by users.
+.sp
+Note there is a disadvantage to specifying parameters at the command
+line: parameters cannot be reloaded while the daemon is running. VNC
+configuration files \fIcan\fP be reloaded, however, which means that the
+daemon can be reconfigured without downtime.
+.sp
+For a list of the VNC configuration files available for the daemon, and
+for detailed explanations of individual parameters, start with
+\fI\%https://www.realvnc.com/docs/configure\-vnc.html#configure\-vnc\-files\fP
+.sp
+Note that an equivalent set of VNC configuration files is available for
+each instance of \fBvncserver\-virtual\fP started by the daemon. To configure
+activities related to a particular session, edit VNC configuration files
+for \fBXvnc\fP owned by the appropriate user; see \fBvncserver\-virtual(1)\fP\&.
+.SH STARTING THE DAEMON
+.sp
+A suitable init script should have been installed with VNC Server; see
+\fBvncinitconfig(1)\fP\&. To start the daemon manually:
+.INDENT 0.0
+.IP \(bu 2
+For a Linux distribution using \fBXsystemd\fP, run \fBsystemctl start
+vncserver\-virtuald.service\fP
+.IP \(bu 2
+For a Linux distribution using \fBXinit.d\fP, run
+\fB/etc/init.d/vncserver\-virtuald start\fP
+.IP \(bu 2
+For a Debian\-compatible Linux distribution using \fBXinit.d\fP,
+(alternatively) run \fBservice vncserver\-virtuald start\fP
+.UNINDENT
+.sp
+To start the daemon automatically at system boot time, use the
+appropriate configuration tool for your system:
+.INDENT 0.0
+.IP \(bu 2
+For a Linux distribution using \fBXsystemd\fP, run \fBsystemctl enable
+vncserver\-virtuald.service\fP
+.IP \(bu 2
+For a Debian\-compatible Linux distribution using \fBXinit.d\fP, run
+\fBupdate\-rc.d vncserver\-virtuald defaults\fP
+.IP \(bu 2
+For a Red Hat\-compatible Linux distribution using \fBXinit.d\fP, run
+\fBchkconfig \-\-add vncserver\-virtuald\fP
+.UNINDENT
+.SH LOGGING
+.sp
+By default, \fBvncserver\-virtuald\fP logs basic activity to the syslog
+DAEMON facility.
+.sp
+To change the log quality, quantity, or destination, specify the \fBLog\fP,
+\fBLogDir\fP, and \fBLogFile\fP parameters.
+.SH SEE ALSO
+.sp
+\fBvncserver\-virtual(1)\fP,
+\fBvnclicense(1)\fP,
+\fBvncinitconfig(1)\fP,
+\fBvncpasswd(1)\fP,
+\fBvncviewer(1)\fP
+.SH AUTHOR
+.sp
+Copyright \[co] RealVNC Ltd.
+.sp
+RealVNC and VNC are trademarks of RealVNC Ltd and are protected by
+trademark registrations and/or pending trademark applications in the
+European Union, United States of America and other jurisdictions.
+Protected by UK patent 2481870; US patent 8760366; EU patent 2652951.
+.sp
+\fI\%https://www.realvnc.com\fP
+.\" Generated by docutils manpage writer.
+.

@@ -1,0 +1,198 @@
+#!/bin/sh
+#
+#  Copyright (C) 2002-2013 RealVNC Ltd.
+#
+
+#
+# vncinstall - install VNC programs, man pages, and create default PAM and 
+# vncserver configuration files and a default xstartup.
+#
+
+# Set up defaults and platform-specific overrides
+dst=/usr/bin
+lib=/usr/lib
+etcvnc=/etc/vnc
+mandst=/usr/share/man
+cupsdst=/usr/lib/cups
+share=/usr/share
+installSELinux=1
+
+if [ $# -gt 4 ]; then
+    echo "usage: $0 [<installation-directory> [<man-page-directory> [<cups-directory] ] ]"
+    exit 1
+fi
+
+# Installation directory
+if [ $# -gt 0 ]; then
+    dst=$1
+    shift
+fi
+
+# Check installation directory exists
+if [ '!' -d "$dst" ]; then
+    echo "Installation directory $dst does not exist."
+    exit 1
+fi
+
+# Man page directories
+if [ $# -gt 0 ]; then
+    mandst="$1"
+    shift
+fi
+if [ '!' -d "$mandst" ] || [ '!' -w "$mandst" ]; then
+    echo "Can't install manual pages to $mandst"
+    mandst=""
+else
+    mandst="$mandst"/man1
+fi
+
+# CUPS directory
+if [ $# -gt 0 ]; then
+    cupsdst="$1"
+    shift
+fi
+
+# Copy files
+for f in vncviewer vncserver-x11 vncserver-x11-core Xvnc Xvnc-core \
+         vncserver vncserverui vncserver-virtual vncserver-virtuald \
+         vncserver-x11-serviced vncpasswd vnclicense vnclicensewiz \
+         vncpamhelper vncfopshelper vncinitconfig \
+         vncagent; do
+
+  if [ '!' -f $f ]; then
+      echo "Couldn't find $f"
+  else
+      if cmp -s $f "$dst"/$f; then
+          echo "$f hasn't changed"
+      else
+          echo "Copying $f to $dst"
+          cp -f $f "$dst"
+          chmod 0555 "$dst"/$f
+      fi
+
+      if [ -f $f.1 ]; then
+          if [ -n "$mandst" ]; then
+              if cmp -s $f.1 "$mandst"/$f.1; then
+                  echo "$f.1 hasn't changed"
+              else
+                  echo "Copying $f.1 to $mandst/$f.1"
+                  cp -f $f.1 "$mandst"/$f.1
+                  chmod 0444 "$mandst"/$f.1
+              fi
+          fi
+      fi
+  fi
+
+done
+
+if [ "`id -u`" -ne 0 ]; then
+    echo "Some installation components require root access to install."
+    echo "Rerun `basename $0` as root to install properly."
+    exit 1
+fi
+
+# Create lib directory if it doesn't exist
+if [ '!' -d $lib/vnc ]; then
+  mkdir -p $lib/vnc
+  chmod 0755 $lib/vnc
+fi
+
+# Copy files to lib directory
+for f in get_primary_ip4 vncservice registerSELinuxmodules; do
+
+  if [ '!' -f $f ]; then
+      echo "Couldn't find $f"
+  else
+      if cmp -s $f $lib/vnc/$f; then
+          echo "$f hasn't changed"
+      else
+          echo "Copying $f to $lib/vnc"
+          cp -f $f $lib/vnc
+          chmod 0555 $lib/vnc/$f
+      fi
+  fi
+
+done
+
+# Create /etc/vnc directory if it doesn't exist
+if [ '!' -d $etcvnc ]; then
+  mkdir -p $etcvnc
+  chmod 0755 $etcvnc
+fi
+
+sharevnc=$share/vnc
+
+# Create shared user directory if it doesn't exist
+if [ '!' -d $sharevnc ]; then
+  mkdir -p $sharevnc
+  chmod 0755 $sharevnc
+fi
+
+if [ '!' -d $sharevnc/fonts ]; then
+  mkdir -p $sharevnc/fonts
+  chmod 0755 $sharevnc/fonts
+fi
+
+cp -f fonts/* $sharevnc/fonts
+chmod 0444 $sharevnc/fonts/*
+
+cp -f rgb.txt $sharevnc
+chmod 0444 $sharevnc/rgb.txt
+
+# Check for old cloud config packages and public CA certs and remove them if
+# present
+if [ -f $sharevnc/CloudConfig.pkg ]; then
+  rm $sharevnc/CloudConfig.pkg
+fi
+rm -f $sharevnc/cacerts.pem $sharevnc/garoots.pem
+
+mkdir -p "$share/icons/hicolor/48x48/apps/"
+for f in icons/* ; do
+  filename=`basename $f`
+  cp -f "icons/${filename}" "$share/icons/hicolor/48x48/apps/${filename}"
+  chmod 0444 "$share/icons/hicolor/48x48/apps/${filename}"
+done
+if which gtk-update-icon-cache >/dev/null 2>&1; then
+  gtk-update-icon-cache --quiet "$share/icons/hicolor" || true
+fi
+
+applications=$share/applications
+
+# Attempt to copy desktop files
+if [ -d $applications ]; then
+  for f in applications/* ; do
+     cp -f "$f" "$applications"
+  done
+fi
+
+if which update-desktop-database >/dev/null 2>&1 ; then
+    update-desktop-database -q
+fi
+
+
+setuid="Xvnc vncserver-x11"
+for i in $setuid; do
+  chmod 4755 $dst/$i
+done
+
+cups_backend="$cupsdst"/backend
+cups_vnc="$cups_backend"/vnc
+mkdir -p "$cups_backend"
+cp -f cups/vnc "$cups_vnc"
+chown root "$cups_vnc"
+chmod 0700 "$cups_vnc"
+
+if [ "$installSELinux" -eq 1 ]; then
+  if [ '!' -d $share/selinux/packages/realvnc ]; then
+    mkdir -p $share/selinux/packages/realvnc
+    chmod 0755 $share/selinux/packages/realvnc
+  fi
+
+  cp -f SELinux/* $share/selinux/packages/realvnc
+  chmod 0444 $share/selinux/packages/realvnc/*
+
+  "$dst"/vncinitconfig -register-SELinux
+fi
+
+"$dst"/vncinitconfig -install-defaults
+

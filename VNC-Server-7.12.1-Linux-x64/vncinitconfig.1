@@ -1,0 +1,184 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "vncinitconfig" "1" "December 2022" "RealVNC Ltd" "VNC"
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH NAME
+.sp
+\fBvncinitconfig\fP \- VNC\(rg Server setup utility
+.SH SYNOPSIS
+.sp
+\fBvncinitconfig\fP \fIACTION\fP\&...
+.SH DESCRIPTION
+.sp
+\fBvncinitconfig\fP resets VNC Server to factory defaults, and performs
+related auxiliary operations. \fIACTIONS\fP apply to VNC Server in all modes
+unless otherwise stated.
+.sp
+Note that \fBvncinitconfig \-install\-defaults\fP is run
+automatically when VNC Server is installed, and numerous files are
+created; examine the script for details. If you wish to subsequently
+edit these files, it is recommended you do so in parallel \fB\&.custom\fP files;
+see the header at the top of each file for more information.
+.sp
+Note that if you \fIdo\fP edit the original files and subsequently run
+\fBvncinitconfig\fP, any changes are overridden but preserved in files
+with a \fB\&.old\fP suffix.
+.SH ACTIONS
+.INDENT 0.0
+.TP
+.B \fB\-install\-defaults\fP
+Performs all the actions below except \fB\-register\-SELinux\fP,
+\fB\-enable\-system\-xorg\fP and \fB\-disable\-system\-xorg\fP,
+where supported on the platform. It may be
+useful to perform this operation if VNC Server or any auxiliary
+application or file becomes corrupted.
+.TP
+.B \fB\-pam\fP
+Creates \fB/etc/pam.d/vncserver\fP or updates \fB/etc/pam.conf\fP,
+depending upon the version of PAM installed, to enable system
+authentication using PAM. By default, the \fIpam_unix\fP module is
+referenced to query passwords against the local database store
+only.
+.sp
+If you wish to query passwords against a directory service such as
+LDAP, you must reference an alternative module that provides this
+functionality. As a convenience, \fB\-pam\fP additionally lists PAM
+modules (such as \fIpam_ldap.so\fP) found on your system; you must
+manually create \fB/etc/pam.d/vncserver.custom\fP or edit \fB/etc/pam.conf\fP
+to reference such a module.
+.sp
+Alternatively, for distributions such as Ubuntu with a common PAM
+configuration in \fB/etc/pam.d/common\-auth\fP, set
+\fB/etc/pam.d/vncserver.custom\fP to:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+@include common\-auth
+@include common\-account
+@include common\-session
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+For distributions such as Red Hat with a common PAM configuration in
+\fB/etc/pam.d/password\-auth\fP, set \fB/etc/pam.d/vncserver.custom\fP to:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+auth     include  password\-auth
+account  include  password\-auth
+session  include  password\-auth
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.TP
+.B \fB\-xstartup\fP
+Creates \fB/etc/vnc/xstartup\fP to run a default virtual desktop
+environment for VNC Server in Virtual Mode. See
+\fBvncserver\-virtual(1)\fP\&.
+.TP
+.B \fB\-config\fP
+Creates \fB/etc/vnc/config\fP to specify default Xvnc options for
+VNC Server in Virtual Mode. See \fBvncserver\-virtual(1)\fP\&.
+.TP
+.B \fB\-virtual\-pulse\-conf\fP
+Creates \fB/etc/vnc/pulse/daemon.conf\fP which will be read by the PulseAudio
+sound server when audio is played from within a Virtual Mode session.  This
+prevents audio from the virtual sessions being directed to the physical
+speakers.
+.TP
+.B \fB\-virtual\-xorg\-conf\fP
+Creates \fB/etc/X11/vncserver\-virtual.conf\fP to configure Xorg when VNC
+Server in Virtual Mode is used with SystemXorg enabled.
+.TP
+.B \fB\-keygen\fP
+Regenerates a private key for the root user. This key determines the
+identity of VNC Server in Service Mode and of the VNC Server in
+Virtual Mode daemon. Note you should ideally find out why the
+private key is missing or corrupt before performing this operation.
+.TP
+.B \fB\-licensing\fP
+Clears up old files related to licensing.
+.TP
+.B \fB\-service\-daemon\fP, \fB\-virtual\-daemon\fP
+Installs an init file for the VNC Server in Service Mode or VNC
+Server in Virtual Mode daemon respectively. This will be a
+SystemV\-style init script or systemd unit file as appropriate. See
+\fBvncserver\-x11\-serviced(1)\fP,
+\fBvncserver\-virtuald(1)\fP\&.
+.TP
+.B \fB\-enable\-print\fP
+Registers the VNC backend with CUPS, on platforms where the VNC
+backend cannot be installed directly in the CUPS directory.
+.TP
+.B \fB\-firewalld\fP
+Install firewalld service configuration files for VNC Service Mode
+and Virtual Mode daemons.
+.TP
+.B \fB\-register\-SELinux\fP
+Attempts to register SELinux modules that have been compiled onto the
+system. Required for the VNC Server in Service Mode and Virtual Mode
+daemons. Note this command is not run as part of \fB\-install\-defaults\fP\&.
+.TP
+.B \fB\-enable\-system\-xorg\fP
+Enables SystemXorg for VNC Server in Virtual Mode. Run as root to enable
+for all users, or as a normal user to enable for just that user. When
+SystemXorg is enabled, VNC Server in Virtual Mode will use your system\(aqs
+installed Xorg instead of Xvnc. Note this command is not run as part of
+\fB\-install\-defaults\fP\&.
+.TP
+.B \fB\-disable\-system\-xorg\fP
+Disables SystemXorg for VNC Server in Virtual Mode. Run as root to disable
+for all users, or as a normal user to disable for just that user. Note this
+command is not run as part of \fB\-install\-defaults\fP\&.
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fBvncserver\-x11(1)\fP,
+\fBvncserver\-x11\-serviced(1)\fP,
+\fBvncserver\-virtual(1)\fP,
+\fBvncserver\-virtuald(1)\fP
+.SH AUTHOR
+.sp
+Copyright \[co] RealVNC Ltd.
+.sp
+RealVNC and VNC are trademarks of RealVNC Ltd and are protected by
+trademark registrations and/or pending trademark applications in the
+European Union, United States of America and other jurisdictions.
+Protected by UK patent 2481870; US patent 8760366; EU patent 2652951.
+.sp
+\fI\%https://www.realvnc.com\fP
+.\" Generated by docutils manpage writer.
+.

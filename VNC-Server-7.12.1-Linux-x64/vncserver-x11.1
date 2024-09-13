@@ -1,0 +1,164 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "vncserver-x11" "1" "December 2022" "RealVNC Ltd" "VNC"
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH NAME
+.sp
+\fBvncserver\-x11\fP \- VNC\(rg Server in User Mode
+.SH SYNOPSIS
+.sp
+\fBvncserver\-x11\fP [\fIOPTION\fP\&...]
+.sp
+\fBvncserver\-x11\fP [\fIMODE\fP] [\fIOPTION\fP\&...] \fICOMMAND\fP
+.SH DESCRIPTION
+.sp
+\fBvncserver\-x11\fP starts VNC Server in User Mode, to allow the desktop of the
+currently\-logged on user to be remoted to VNC Viewer on another computer.  When
+this user is logged out, VNC Server automatically stops; all VNC Viewer users
+are disconnected, and cannot reconnect.  Note that a suitable offline license
+is required; see \fBvnclicense(1)\fP\&.
+.sp
+Run \fBvncserver\-x11\fP to start VNC Server and wait for connections.  A user
+interface consisting of a status dialog and, if supported by the window
+manager, a status icon is displayed, providing connectivity information and
+convenient access to features such as file transfer and chat.  The status
+dialog shows information about how to connect and authenticate from VNC Viewer
+on another computer.
+.sp
+Note that an instance of \fBvncserver\-x11\fP is automatically started (as
+the root user) by VNC Server in Service Mode; see
+\fBvncserver\-x11\-serviced(1)\fP\&.
+.sp
+\fBvncserver\-x11\fP consumes one computer \(aqdesktop\(aq from your subscription.  See
+\fBvnclicense(1)\fP for how to check licensing details.
+.SH COMMANDS
+.sp
+Applying a command to \fBvncserver\-x11\fP performs an auxiliary operation
+instead of starting VNC Server.
+.sp
+To see a list of valid commands, run \fBvncserver\-x11 \-help\fP\&.
+.SH MODE
+.sp
+To apply a \fICOMMAND\fP to the privileged instance of \fBvncserver\-x11\fP started by
+VNC Server in Service Mode, run the command as root and specify \fB\-service\fP\&.
+.sp
+Otherwise, commands apply automatically to VNC Server in User Mode.
+.SH OPTIONS
+.sp
+Options are parameters, used to configure VNC Server, and also the
+following:
+.INDENT 0.0
+.TP
+.B \fB\-iconnect HOST[::PORT]\fP
+Establishes a reverse connection to a Listening VNC Viewer on HOST
+at PORT (5500 by default). See \fBvncviewer(1)\fP\&.
+.TP
+.B \fB\-newinstance\fP
+Starts a new instance of VNC Server, providing your subscription
+permits; see \fBvnclicense(1)\fP\&.
+By default, running \fBvncserver\-x11\fP a second time interacts with
+the first instance.
+.TP
+.B \fB\-showstatus\fP
+Displays the status dialog and status icon. This may be useful to
+force display in some desktop environments.
+.TP
+.B \fB\-vncconfigfile FILE\fP
+For convenience, if you have many parameters to specify at the
+command line, populate a text file (one parameter per line; omit the
+dash) and reference it using this flag.
+.UNINDENT
+.sp
+To see a list of valid parameters, run \fBvncserver\-x11 \-help\fP\&.
+.SH VNC CONFIGURATION FILES
+.sp
+Parameters can be specified as command line \fIOPTIONS\fP, but
+preferably in VNC configuration files. VNC configuration files are
+available for:
+.INDENT 0.0
+.IP \(bu 2
+All programs, or just VNC Server
+.IP \(bu 2
+All users of the computer, or just the user starting VNC Server
+.IP \(bu 2
+Policy, in order to lock down VNC Server
+.UNINDENT
+.sp
+When VNC Server starts, parameters are applied in the following
+order:
+.INDENT 0.0
+.IP 1. 3
+System\-wide VNC configuration files
+.IP 2. 3
+Per\-user VNC configuration files
+.IP 3. 3
+Command line \fIOPTIONS\fP
+.IP 4. 3
+Policy VNC configuration files
+.UNINDENT
+.sp
+This means that a particular parameter specified at the command line
+overrides the same parameter specified in a per\-user or in a system\-wide
+VNC configuration file, but is itself overridden by the same parameter
+specified in a policy VNC configuration file. Policy cannot be changed
+by users.
+.sp
+Note there is a disadvantage to specifying parameters at the command
+line: parameters cannot be reloaded while VNC Server is running. VNC
+configuration files \fIcan\fP be reloaded, however, which means that VNC
+Server can be reconfigured without downtime.
+.sp
+For a full list of available VNC configuration files, visit
+\fI\%https://www.realvnc.com/docs/configure\-vnc.html#configure\-vnc\-files\fP
+.SH LOGGING
+.sp
+By default, \fBvncserver\-x11\fP logs basic activity to file at
+\fI$HOME/.vnc/vncserver\-x11.log\fP\&.
+.sp
+To change the log quality, quantity, or destination, specify the \fBLog\fP,
+\fBLogDir\fP, and \fBLogFile\fP parameters.
+.SH SEE ALSO
+.sp
+\fBvncserver\-x11\-serviced(1)\fP,
+\fBvnclicense(1)\fP,
+\fBvncinitconfig(1)\fP,
+\fBvncpasswd(1)\fP,
+\fBvncviewer(1)\fP
+.SH AUTHOR
+.sp
+Copyright \[co] RealVNC Ltd.
+.sp
+RealVNC and VNC are trademarks of RealVNC Ltd and are protected by
+trademark registrations and/or pending trademark applications in the
+European Union, United States of America and other jurisdictions.
+Protected by UK patent 2481870; US patent 8760366; EU patent 2652951.
+.sp
+\fI\%https://www.realvnc.com\fP
+.\" Generated by docutils manpage writer.
+.

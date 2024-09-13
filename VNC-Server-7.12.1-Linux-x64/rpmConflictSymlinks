@@ -1,0 +1,165 @@
+#!/bin/sh
+
+
+
+##########
+## This script is designed to be run with the rpm package
+## it handles file conflicts between other common vnc providers
+## that may have incorrect dependancies. (primerially tigervnc-server-minimal & anaconda)
+##
+## While it can be run without arguments, to ensure that it runs exactly as
+## expected it's best to provide the bin and data path.
+
+
+###########
+## Helper functions
+
+removeSymLink() {
+  name="$1"
+  if [ -h "$name" ]; then
+    rm -f "$name"
+  fi
+  
+  if [ -f "$name.conflict" ]; then
+    rm -f "$name"
+    mv "$name.conflict" "$name"
+  fi
+}
+
+
+moveConflict() {
+  name="$1"
+  if [ -f "$name" ]; then
+    if [ $verbose -eq 1 ]; then
+      echo "** Moving $name to $name.conflict"
+    fi
+    rm -f "$name.conflict"
+    mv "$name" "$name.conflict"
+  fi
+  return 0
+}
+
+
+# if the link already exists as expected, then this function should do nothing
+# readlink is a binary that is installed as part of 'coreutils' - a package required
+# by rpm itself; so we can be sure that it will be available.
+generateLink() {
+  base="$1"
+  suffix="$2"
+  currentLink=`readlink $base$suffix`
+  targetLink="$base-realvnc$suffix"
+
+  if [ "$targetLink" == "$currentLink" ] ; then
+    return
+  fi
+
+  moveConflict "$base$suffix"
+  if [ $? == 0 ] ; then
+    ln -s "$targetLink" "$base$suffix"
+  fi
+}
+
+
+#########
+## Worker functions
+
+remove_Links() {
+  for i in $files; do
+    removeSymLink "${binDir}/$i"
+    removeSymLink "${dataDir}/man/man1/$i.1.gz"
+  done
+}
+
+
+create_Links() {
+  for i in $files; do
+    generateLink "${binDir}/$i" ""
+    generateLink "${dataDir}/man/man1/$i" ".1.gz"
+  done
+}
+
+
+showUsage() {
+  echo "$thisScriptName [OPTIONS]"
+  echo "  -task=X"
+  echo "    Valid options:  create, remove"
+  echo "    default:  create"
+  echo "  -bindir=X"
+  echo "    Full path to the vnc bin directory"
+  echo "    default: /usr/bin"
+  echo "  -datadir=X"
+  echo "    Full path to the vnc data directory"
+  echo "    default: /usr/share"
+  echo ""
+  echo "The end result will be that all symlinks required by vnc exist"
+  echo "If a vnc installation can not be found because of either path being incorrect"
+  echo "no action will be taken"
+  
+  exit
+}
+
+
+################
+## Defaults
+
+thisScriptName=`basename "$0"`
+binDir="/usr/bin"
+dataDir="/usr/share"
+task="create"
+files="Xvnc vncpasswd"
+
+
+################
+## Process arguments
+
+verbose=1
+for i in "$@"; do
+  case $i in
+    -t=*|-task=*|--task=*)
+      task="${i#*=}"
+      shift
+      ;;
+    -b=*|-binDir=*|--bindir=*)
+      binDir="${i#*=}"
+      shift
+      ;;
+    -d=*|-datadir=*|--datadir=*)
+      dataDir="${i#*=}"
+      shift
+      ;;
+    -q)
+      verbose=0
+      ;;
+    *)
+      showUsage
+      ;;
+  esac
+done
+
+
+##############
+## argument validation
+
+if [ "$task" != "create" ] && \
+   [ "$task" != "remove" ] ; then
+  echo Invalid task
+  showUsage
+fi
+
+if [ ! -f "${binDir}/vncserver-x11" ]; then
+  echo Invalid bin directory
+  showUsage
+fi
+
+if [ ! -f "${dataDir}/man/man1/vncserver-x11.1.gz" ]; then
+  echo Invalid data directory
+  showUsage
+fi
+
+
+#############
+## GO!
+${task}_Links
+
+
+

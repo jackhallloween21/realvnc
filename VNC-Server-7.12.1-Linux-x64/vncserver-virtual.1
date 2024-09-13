@@ -1,0 +1,308 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "vncserver-virtual" "1" "December 2022" "RealVNC Ltd" "VNC"
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH NAME
+.sp
+\fBvncserver\-virtual\fP \- VNC\(rg Server in Virtual Mode
+.SH SYNOPSIS
+.sp
+\fBvncserver\-virtual\fP [\fIOPTION\fP\&...] [\fI:DISPLAY\fP]
+.sp
+\fBvncserver\-virtual\fP [\fIOPTION\fP\&...] \fICOMMAND\fP
+.SH DESCRIPTION
+.sp
+\fBvncserver\-virtual\fP starts VNC Server in Virtual Mode, to create a
+\fIvirtual\fP desktop and provide a dedicated workspace for connected VNC
+Viewer(s). A virtual desktop persists until VNC Server is explicitly
+stopped, even if the user starting it is logged out, or all VNC Viewers
+disconnect. It is entirely independent of the console of the host
+computer; neither the desktop of the currently logged on user, nor the
+login screen, are available to connected VNC Viewers.  Note that a suitable
+offline license is required; see \fBvnclicense(1)\fP\&.
+.sp
+By default, \fBvncserver\-virtual\fP is the recommended interface to \fBXvnc\fP\&.
+\fBvncserver\-virtual\fP passes \fIOPTIONS\fP to \fBXvnc\fP, and in addition runs a
+default desktop environment, handles logging, and prompts for a password if the
+VNC password authentication scheme is chosen. Note there \fImay\fP be circumstances
+in which you need to interact with \fBXvnc\fP directly; see \fBXvnc(1)\fP\&.
+.sp
+Run \fBvncserver\-virtual\fP to start VNC Server and create a virtual
+desktop on the first available display, for example 1. By convention,
+this equates to a port number of 5900 + DISPLAY, so in this case port
+5901. Note that until you have successfully connected via VNC Viewer, there is
+no user interface available for you to work with VNC Server; see \fIOPTIONS\fP
+for how to configure VNC Server before it starts. Run \fBvncserver\-virtual
+:DISPLAY\fP to start VNC Server on the specified display, if it is available.
+.sp
+Note that as an alternative VNC Server can be started
+automatically to create virtual desktops on demand; see
+\fBvncserver\-virtuald(1)\fP\&.
+.sp
+\fBvncserver\-virtual\fP consumes one computer \(aqdesktop\(aq from your subscription.
+See \fBvnclicense(1)\fP for how to check licensing details.
+.SH COMMANDS
+.sp
+Applying one of the following commands to \fBvncserver\-virtual\fP performs
+an auxiliary operation instead of starting VNC Server:
+.INDENT 0.0
+.TP
+.B \fB\-clean\fP
+Deletes any \fI/tmp/.X11\-unix\fP directory and \fI/tmp/.X<num>\fP
+files that may persist if VNC Server is stopped abruptly.
+.TP
+.B \fB\-help\fP
+Shows a help summary.
+.TP
+.B \fB\-kill :DISPLAY\fP
+Stops VNC Server, disconnecting all VNC Viewers, and destroying the
+virtual desktop on DISPLAY.
+.TP
+.B \fB\-list\fP
+Shows a list of \fIOPTIONS\fP\&.
+.TP
+.B \fB\-test\fP
+Test mode. The environment and any \fIOPTIONS\fP are tested, and the
+expected command is printed rather than executed. For example:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+vncserver\-virtual \-test :1 \-config=/my/Xvnc/options
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+verifies that display 1 is available, checks that the \fI/my/Xvnc/options\fP
+file contains only valid Xvnc options in the correct format for the
+X server, prints the command, and exits.
+.UNINDENT
+.sp
+Note that other commands are available to perform operations on
+\fIexisting\fP virtual desktops, but these must be applied to \fBXvnc\fP;
+see \fBXvnc(1)\fP\&.
+.SH OPTIONS
+.sp
+Options can be any combination of the following:
+.INDENT 0.0
+.IP \(bu 2
+Parameters, used to configure VNC Server. Run \fBvncserver\-virtual
+\-list\fP and examine the output at the bottom. Note it is preferable to
+specify parameters in \fI\%VNC configuration files\fP\&.
+.IP \(bu 2
+Xvnc options, used to configure the built\-in X server. Run
+\fBvncserver\-virtual \-list\fP and examine the output at the top, and see
+\fBXserver(1)\fP for more information on shared options. Note it may be
+more convenient to specify Xvnc options in \fI\%Xvnc configuration files\fP\&.
+.IP \(bu 2
+The following additional Xvnc options, which may also be specified in
+\fI\%Xvnc configuration files\fP:
+.INDENT 2.0
+.TP
+.B \fB\-blackpixel N\fP
+Specifies the pixel value for black.
+.TP
+.B \fB\-config FILE\fP
+Loads Xvnc options from FILE (one per line, in the format
+expected by the X server) instead of those in \fI$HOME/.vnc/config\fP\&.
+.TP
+.B \fB\-depth D\fP
+Specifies the pixel depth in bits of the virtual desktop. The
+default is 16; alternatives are 8, 15, and 24.
+.TP
+.B \fB\-geometry WxH\fP
+Specifies the size of the virtual desktop. The default is
+1024x768.
+.TP
+.B \fB\-iconnect HOST[::PORT]\fP
+Establishes a reverse connection to a Listening VNC Viewer on
+HOST at PORT (5500 by default). See \fBvncviewer(1)\fP\&.
+.TP
+.B \fB\-linebias N\fP
+Adjusts thin line pixelization.
+.TP
+.B \fB\-pixdepths list\-of\-int\fP
+Supports the given list of pixmap depths.
+.TP
+.B \fB\-pixelformat FMT\fP
+Specifies the pixel format (RGBnnn or BGRnnn). The default for
+depth 8 is to use a colormap (palette); the default for depth 16
+is RGB565 and for depth 24, RGB888.
+.TP
+.B \fB\-screen N WxHxD [XxY]\fP
+Sets the width, height, depth, and origin of screen N.
+.TP
+.B \fB\-showstatus\fP
+Causes the VNC Server status dialog to be displayed to connected
+VNC Viewers (the dialog is hidden by default).
+.TP
+.B \fB\-vncconfigfile FILE\fP
+For convenience, if you have many parameters to specify at
+the command line, populate a text file (one parameter per line;
+omit the dash) and reference it using this flag.
+.TP
+.B \fB\-whitepixel N\fP
+Specifies the pixel value for white.
+.UNINDENT
+.IP \(bu 2
+The following special options, which must NOT be specified in \fI\%Xvnc
+configuration files\fP:
+.INDENT 2.0
+.TP
+.B \fB\-config FILE\fP
+Loads Xvnc options from FILE (one per line, in the format
+expected by the X server) instead of those in
+\fI$HOME/.vnc/config\fP\&.
+.TP
+.B \fB\-nocheckpasswd\fP
+Does not prompt for a password if the VNC password authentication
+scheme is chosen.
+.UNINDENT
+.UNINDENT
+.SH VNC CONFIGURATION FILES
+.sp
+Parameters can be specified as command line \fIOPTIONS\fP, but
+preferably in VNC configuration files. VNC configuration files are
+available for:
+.INDENT 0.0
+.IP \(bu 2
+All programs, or just VNC Server
+.IP \(bu 2
+All users of the computer, or just the user starting VNC Server
+.IP \(bu 2
+Policy, in order to lock down VNC Server (suitable subscription
+required)
+.UNINDENT
+.sp
+When VNC Server starts, parameters are applied in the following
+order:
+.INDENT 0.0
+.IP 1. 3
+System\-wide VNC configuration files
+.IP 2. 3
+Per\-user VNC configuration files
+.IP 3. 3
+Command line \fIOPTIONS\fP
+.IP 4. 3
+Policy VNC configuration files
+.UNINDENT
+.sp
+This means that a particular parameter specified at the command line
+overrides the same parameter specified in a per\-user or in a system\-wide
+VNC configuration file, but is itself overridden by the same parameter
+specified in a policy VNC configuration file. Policy cannot be changed
+by users.
+.sp
+Note there is a disadvantage to specifying parameters at the command
+line: parameters cannot be reloaded while VNC Server is running. VNC
+configuration files \fIcan\fP be reloaded, however, which means that VNC
+Server can be reconfigured without downtime.
+.sp
+For a full list of available VNC configuration files, visit
+\fI\%https://www.realvnc.com/docs/configure\-vnc.html#configure\-vnc\-files\fP
+.SH XVNC CONFIGURATION FILES
+.sp
+Xvnc options can be specified as command line \fIOPTIONS\fP, or in Xvnc
+configuration files:
+.INDENT 0.0
+.IP \(bu 2
+To specify Xvnc options for all users of the computer, create
+\fI/etc/vnc/config.custom\fP\&.
+.IP \(bu 2
+To specify Xvnc options for a particular user, create
+\fI$HOME/.vnc/config\fP (though see also the \fB\-config\fP flag).
+.UNINDENT
+.sp
+For more information, see
+\fI\%https://www.realvnc.com/docs/configure\-xvnc.html\fP
+.sp
+Note if you specify the same Xvnc option in multiple locations there is
+no guarantee which will actually take effect.
+.SH X STARTUP SCRIPT
+.sp
+By default, \fBvncserver\-virtual\fP runs \fI/etc/vnc/xstartup\fP to select
+a desktop environment for the virtual desktop. You may want to choose
+a different desktop environment, or run particular applications:
+.INDENT 0.0
+.IP \(bu 2
+To make changes for all users of the computer, create
+\fI/etc/vnc/xstartup.custom\fP\&. If this file exists, the default script
+is not run.
+.IP \(bu 2
+To make changes for a particular user, create \fI$HOME/.vnc/xstartup\fP\&.
+If this file exists, no system\-wide script is run for that user.
+.UNINDENT
+.SH SUPPORTED DESKTOP ENVIRONMENTS
+.sp
+The Xorg server built\-in to VNC Server may have different capabilities to
+the system Xorg server; most notably, hardware acceleration might not be
+available. For this reason, some desktop environments (particularly
+those with a reliance on graphical effects) may not work.
+.sp
+For a better user experience out\-of\-the\-box on some distributions
+(particularly Red Hat), run \fBvncserver\-virtual\fP in conjunction with the
+system Xorg server. More desktop environments and applications will likely
+be compatible. For more information on this alternative implementation, see
+\fI\%https://support.realvnc.com/knowledgebase/article/View/546\fP
+.SH ADDITIONAL FILES
+.sp
+\fBvncserver\-virtual\fP creates \fI$HOME/.vnc/HOST:DISPLAY.pid\fP, containing
+the process ID of the virtual desktop. This file is required for the
+\fB\-kill\fP command.
+.SH LOGGING
+.sp
+By default, \fBvncserver\-virtual\fP logs basic activity to Standard Error,
+and automatically redirects it to file at \fI$HOME/.vnc/HOST:DISPLAY.log\fP\&.
+The log output of any applications in the X startup script is also
+included.
+.sp
+To change the log quality, quantity, or destination, specify the \fBLog\fP,
+\fBLogDir\fP, and \fBLogFile\fP parameters.
+.SH SEE ALSO
+.sp
+\fBXvnc(1)\fP,
+\fBvncserver\-virtuald(1)\fP,
+\fBvnclicense(1)\fP,
+\fBvncinitconfig(1)\fP,
+\fBvncpasswd(1)\fP,
+\fBvncviewer(1)\fP
+.SH AUTHOR
+.sp
+Copyright \[co] RealVNC Ltd.
+.sp
+RealVNC and VNC are trademarks of RealVNC Ltd and are protected by
+trademark registrations and/or pending trademark applications in the
+European Union, United States of America and other jurisdictions.
+Protected by UK patent 2481870; US patent 8760366; EU patent 2652951.
+.sp
+\fI\%https://www.realvnc.com\fP
+.\" Generated by docutils manpage writer.
+.
